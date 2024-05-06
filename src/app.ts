@@ -7,7 +7,13 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.get('/', (req, res) => res.send('Express on Vercel'));
+
+app.use(
+  cors({
+    origin: 'https://icd-frontend.vercel.app',
+  })
+);
 app.use(express.json());
 app.use('/api/icd', icdRoutes);
 
