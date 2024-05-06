@@ -1,4 +1,3 @@
-import { getToken } from './tokenService';
 import https from 'https';
 const ICD_CODE_REGEX = /\/+/g;
 const ICD_FOUNDATION_ID_REGEX = /\/(\d+)(?:\/(\d+|[^\/]+))?$/;
@@ -23,12 +22,11 @@ interface DetailedError {
   details?: any;
 }
 
-export const fetchIcdFoundationData = async (id: string) => {
-  const accessToken = await getToken();
+export const fetchIcdFoundationData = async (id: string, authToken: string) => {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${authToken}`,
         Accept: 'application/json',
         'Accept-Language': 'en',
         'API-Version': process.env.API_VERSION,
@@ -67,13 +65,14 @@ export const fetchIcdFoundationData = async (id: string) => {
   });
 };
 
-export const fetchIcdMMSDataBySearchText = async (searchText: string) => {
-  const accessToken = await getToken();
-
+export const fetchIcdMMSDataBySearchText = async (
+  searchText: string,
+  authToken: string
+) => {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${authToken}`,
         Accept: 'application/json',
         'Accept-Language': 'en',
         'API-Version': process.env.API_VERSION,
@@ -102,15 +101,17 @@ export const fetchIcdMMSDataBySearchText = async (searchText: string) => {
   });
 };
 
-export const fetchEnrichedIcdData = async (icdCodes: string) => {
+export const fetchEnrichedIcdData = async (
+  icdCodes: string,
+  authToken: string
+) => {
   const icdCodesArray = icdCodes.split(ICD_CODE_REGEX);
-  const accessToken = await getToken();
 
   try {
     const icdCodesAndStemIds = await Promise.all(
       icdCodesArray.map(async (icdCode) => {
         try {
-          const res = await fetchIcdFoundationUri(icdCode, accessToken);
+          const res = await fetchIcdFoundationUri(icdCode, authToken);
           return { icdCode, stemId: res.stemId, isError: false, error: null };
         } catch (error) {
           console.error(`Error fetching foundation URI for ${icdCode}:`, error);
@@ -148,7 +149,7 @@ export const fetchEnrichedIcdData = async (icdCodes: string) => {
           };
 
         try {
-          const res = await fetchEnrichmentData(foundationId!, accessToken);
+          const res = await fetchEnrichmentData(foundationId!, authToken);
           return {
             icdCode,
             foundationId,
@@ -189,12 +190,12 @@ export const fetchEnrichedIcdData = async (icdCodes: string) => {
 
 const fetchIcdFoundationUri = async (
   icdCode: string,
-  accessToken: string
+  authToken: string
 ): Promise<IcdFoundationResponse> => {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${authToken}`,
         Accept: 'application/json',
         'Accept-Language': 'en',
         'API-Version': process.env.API_VERSION,
@@ -225,12 +226,12 @@ const fetchIcdFoundationUri = async (
 
 const fetchEnrichmentData = async (
   foundationId: string,
-  accessToken: string
+  authToken: string
 ): Promise<EnrichedIcdResponse> => {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${authToken}`,
         Accept: 'application/json',
         'Accept-Language': 'en',
         'API-Version': process.env.API_VERSION,
@@ -255,13 +256,14 @@ const fetchEnrichmentData = async (
   });
 };
 
-export const fetchEntityByDiagnosis = async (searchText: string) => {
-  const accessToken = await getToken();
-
+export const fetchEntityByDiagnosis = async (
+  searchText: string,
+  authToken: string
+) => {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${authToken}`,
         Accept: 'application/json',
         'Accept-Language': 'en',
         'API-Version': process.env.API_VERSION,

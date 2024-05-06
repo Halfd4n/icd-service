@@ -1,19 +1,26 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchEntityByDiagnosis = exports.fetchEnrichedIcdData = exports.fetchIcdMMSDataBySearchText = exports.fetchIcdFoundationData = void 0;
-const tokenService_1 = require("./tokenService");
 const https_1 = __importDefault(require("https"));
 const ICD_CODE_REGEX = /\/+/g;
 const ICD_FOUNDATION_ID_REGEX = /\/(\d+)(?:\/(\d+|[^\/]+))?$/;
-const fetchIcdFoundationData = async (id) => {
-    const accessToken = await (0, tokenService_1.getToken)();
+const fetchIcdFoundationData = (id, authToken) => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
         const options = {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${authToken}`,
                 Accept: 'application/json',
                 'Accept-Language': 'en',
                 'API-Version': process.env.API_VERSION,
@@ -47,14 +54,13 @@ const fetchIcdFoundationData = async (id) => {
             reject(e);
         });
     });
-};
+});
 exports.fetchIcdFoundationData = fetchIcdFoundationData;
-const fetchIcdMMSDataBySearchText = async (searchText) => {
-    const accessToken = await (0, tokenService_1.getToken)();
+const fetchIcdMMSDataBySearchText = (searchText, authToken) => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
         const options = {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${authToken}`,
                 Accept: 'application/json',
                 'Accept-Language': 'en',
                 'API-Version': process.env.API_VERSION,
@@ -77,15 +83,14 @@ const fetchIcdMMSDataBySearchText = async (searchText) => {
         })
             .on('error', (e) => reject(e));
     });
-};
+});
 exports.fetchIcdMMSDataBySearchText = fetchIcdMMSDataBySearchText;
-const fetchEnrichedIcdData = async (icdCodes) => {
+const fetchEnrichedIcdData = (icdCodes, authToken) => __awaiter(void 0, void 0, void 0, function* () {
     const icdCodesArray = icdCodes.split(ICD_CODE_REGEX);
-    const accessToken = await (0, tokenService_1.getToken)();
     try {
-        const icdCodesAndStemIds = await Promise.all(icdCodesArray.map(async (icdCode) => {
+        const icdCodesAndStemIds = yield Promise.all(icdCodesArray.map((icdCode) => __awaiter(void 0, void 0, void 0, function* () {
             try {
-                const res = await fetchIcdFoundationUri(icdCode, accessToken);
+                const res = yield fetchIcdFoundationUri(icdCode, authToken);
                 return { icdCode, stemId: res.stemId, isError: false, error: null };
             }
             catch (error) {
@@ -101,13 +106,13 @@ const fetchEnrichedIcdData = async (icdCodes) => {
                     },
                 };
             }
-        }));
+        })));
         const icdCodesAndFoundationIds = icdCodesAndStemIds.map(({ icdCode, stemId, isError, error }) => {
             if (isError)
                 return { icdCode, foundationId: null, isError, error };
             return extractFoundationId(icdCode, stemId);
         });
-        const enrichmentPromises = icdCodesAndFoundationIds.map(async ({ icdCode, foundationId, isError, error }) => {
+        const enrichmentPromises = icdCodesAndFoundationIds.map((_a) => __awaiter(void 0, [_a], void 0, function* ({ icdCode, foundationId, isError, error }) {
             if (isError)
                 return {
                     icdCode,
@@ -118,7 +123,7 @@ const fetchEnrichedIcdData = async (icdCodes) => {
                     error,
                 };
             try {
-                const res = await fetchEnrichmentData(foundationId, accessToken);
+                const res = yield fetchEnrichmentData(foundationId, authToken);
                 return {
                     icdCode,
                     foundationId,
@@ -143,21 +148,21 @@ const fetchEnrichedIcdData = async (icdCodes) => {
                     },
                 };
             }
-        });
-        const enrichedIcdResponse = await Promise.all(enrichmentPromises);
+        }));
+        const enrichedIcdResponse = yield Promise.all(enrichmentPromises);
         return enrichedIcdResponse;
     }
     catch (err) {
         console.error('Error fetching ICD data: ', err);
         return [];
     }
-};
+});
 exports.fetchEnrichedIcdData = fetchEnrichedIcdData;
-const fetchIcdFoundationUri = async (icdCode, accessToken) => {
+const fetchIcdFoundationUri = (icdCode, authToken) => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
         const options = {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${authToken}`,
                 Accept: 'application/json',
                 'Accept-Language': 'en',
                 'API-Version': process.env.API_VERSION,
@@ -180,12 +185,12 @@ const fetchIcdFoundationUri = async (icdCode, accessToken) => {
         })
             .on('error', (e) => reject(e));
     });
-};
-const fetchEnrichmentData = async (foundationId, accessToken) => {
+});
+const fetchEnrichmentData = (foundationId, authToken) => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
         const options = {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${authToken}`,
                 Accept: 'application/json',
                 'Accept-Language': 'en',
                 'API-Version': process.env.API_VERSION,
@@ -208,13 +213,12 @@ const fetchEnrichmentData = async (foundationId, accessToken) => {
         })
             .on('error', (e) => reject(e));
     });
-};
-const fetchEntityByDiagnosis = async (searchText) => {
-    const accessToken = await (0, tokenService_1.getToken)();
+});
+const fetchEntityByDiagnosis = (searchText, authToken) => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
         const options = {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${authToken}`,
                 Accept: 'application/json',
                 'Accept-Language': 'en',
                 'API-Version': process.env.API_VERSION,
@@ -248,7 +252,7 @@ const fetchEntityByDiagnosis = async (searchText) => {
             reject(e);
         });
     });
-};
+});
 exports.fetchEntityByDiagnosis = fetchEntityByDiagnosis;
 /**
  * Extracts the ID from a URI, which can be placed as the last or next-to-last segment of the URI.

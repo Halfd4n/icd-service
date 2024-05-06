@@ -8,9 +8,10 @@ import {
 
 export const getIcdFoundationInfo = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const authToken = req.headers.authorization?.split(' ')[1];
 
   try {
-    const data = await fetchIcdFoundationData(id);
+    const data = await fetchIcdFoundationData(id, authToken!);
     res.status(200).send(data);
   } catch (err) {
     console.error('Error fetching ICD data: ', err);
@@ -20,9 +21,10 @@ export const getIcdFoundationInfo = async (req: Request, res: Response) => {
 
 export const getIcdBySearchText = async (req: Request, res: Response) => {
   const { searchQuery } = req.params;
+  const authToken = req.headers.authorization?.split(' ')[1];
 
   try {
-    const data = await fetchIcdMMSDataBySearchText(searchQuery);
+    const data = await fetchIcdMMSDataBySearchText(searchQuery, authToken!);
     res.status(200).send(data);
   } catch (err) {
     console.error('Error fetching ICD data: ', err);
@@ -32,9 +34,10 @@ export const getIcdBySearchText = async (req: Request, res: Response) => {
 
 export const getEnrichedIcdData = async (req: Request, res: Response) => {
   const { icdCodes } = req.params;
+  const authToken = req.headers.authorization?.split(' ')[1];
 
   try {
-    const data = await fetchEnrichedIcdData(icdCodes);
+    const data = await fetchEnrichedIcdData(icdCodes, authToken!);
     res.status(200).send(data);
   } catch (err) {
     console.error('Error fetching ICD data: ', err);
@@ -44,10 +47,14 @@ export const getEnrichedIcdData = async (req: Request, res: Response) => {
 
 export const getEntityByDiagnosis = async (req: Request, res: Response) => {
   const { searchText } = req.query;
+  const authToken = req.headers.authorization?.split(' ')[1];
 
   if (searchText)
     try {
-      const data = await fetchEntityByDiagnosis(searchText.toString());
+      const data = await fetchEntityByDiagnosis(
+        searchText.toString(),
+        authToken!
+      );
       res.status(200).send(data);
     } catch (err) {
       console.error('Error fetching ICD data: ', err);
